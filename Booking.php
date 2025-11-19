@@ -81,7 +81,27 @@ class Booking extends Dbh {
             return false;
         }
     }
-
+public function isRoomAvailable() {
+    $conn = $this->connect();
+    
+    $stmt = $conn->prepare("
+        SELECT COUNT(*) as booking_count 
+        FROM bookings 
+        WHERE room_id = ? 
+        AND NOT (check_out <= ? OR check_in >= ?)
+    ");
+    
+    $stmt->bind_param("iss", $this->room_id, $this->check_in, $this->check_out);
+    $stmt->execute();
+    
+    $result = $stmt->get_result()->fetch_assoc();
+    $isAvailable = $result['booking_count'] == 0;
+    
+    $stmt->close();
+    $conn->close();
+    
+    return $isAvailable;
+}
     public function delete() {
         $conn = $this->connect();
         $stmt = $conn->prepare("DELETE FROM bookings WHERE id = ?");
