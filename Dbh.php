@@ -12,7 +12,7 @@ class Dbh {
             $this->host = getenv('MYSQLHOST');
             $this->user = getenv('MYSQLUSER');
             $this->pwd = getenv('MYSQLPASSWORD');
-            $this->dbName = getenv('MYSQLDATABASE');
+            $this->dbName = getenv('MYSQLDATABASE'); // Railway's default DB name
             $this->port = getenv('MYSQLPORT') ?: 3306;
         } else {
             // Local development settings
