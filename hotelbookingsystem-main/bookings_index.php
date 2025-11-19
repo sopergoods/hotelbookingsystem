@@ -49,7 +49,7 @@ if (isset($_GET['error'])) {
                             <th>Guest</th>
                             <th>Dates</th>
                             <th>Guests</th>
-                            <th>Total ($)</th>
+                            <th>Total (₱)</th>
                             <th style="width:140px;">Actions</th>
                         </tr>
                     </thead>

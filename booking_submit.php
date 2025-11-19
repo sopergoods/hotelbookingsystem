@@ -56,7 +56,7 @@ $success = $booking->add();
     </div>
     <p><strong>Room:</strong> <?= htmlspecialchars($room['name']) ?></p>
     <p><strong>Dates:</strong> <?= $check_in ?> → <?= $check_out ?></p>
-    <p><strong>Total:</strong> $<?= number_format($total_price,2) ?></p>
+    <p><strong>Total:</strong> ₱<?= number_format($total_price,2) ?></p>
     <a href="index.php" class="btn btn-primary mt-3">Back to Home</a>
 <?php else: ?>
     <div class="alert alert-danger">
