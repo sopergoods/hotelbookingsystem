@@ -1,6 +1,6 @@
 <?php
 
-include_once 'Dbh.php';
+include_once 'dbh.php';
 
 class Booking extends Dbh {
 
@@ -14,59 +14,72 @@ class Booking extends Dbh {
     public $check_out;
     public $total_price;
 
-    public function isRoomAvailable() {
-        $conn = $this->connect();
-
-        $stmt = $conn->prepare("
-            SELECT COUNT(*) AS total
-            FROM bookings
-            WHERE room_id = ?
-            AND NOT (check_out <= ? OR check_in >= ?)
-        ");
-        $stmt->bind_param("iss", $this->room_id, $this->check_in, $this->check_out);
-        $stmt->execute();
-
-        $result = $stmt->get_result()->fetch_assoc();
-        $count = $result['total'];
-
-        $stmt->close();
-        $conn->close();
-
-        return $count == 0;
-    }
-
     public function add() {
-        if (!$this->isRoomAvailable()) {
+        $conn = $this->connect();
+        
+        // Start transaction to prevent race conditions
+        $conn->begin_transaction();
+        
+        try {
+            // Check availability WITH row lock (FOR UPDATE)
+            // This prevents other users from checking the same room simultaneously
+            $stmt = $conn->prepare("
+                SELECT COUNT(*) AS total
+                FROM bookings
+                WHERE room_id = ?
+                AND NOT (check_out <= ? OR check_in >= ?)
+                FOR UPDATE
+            ");
+            $stmt->bind_param("iss", $this->room_id, $this->check_in, $this->check_out);
+            $stmt->execute();
+            
+            $result = $stmt->get_result()->fetch_assoc();
+            $count = $result['total'];
+            $stmt->close();
+            
+            
+            if ($count > 0) {
+                $conn->rollback();
+                $conn->close();
+                return false;
+            }
+            
+           
+            $stmt = $conn->prepare("
+                INSERT INTO bookings
+                (room_id, user_id, guest_name, guest_email, guests, check_in, check_out, total_price)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            
+            $user_id = $this->user_id ? $this->user_id : null;
+            
+            $stmt->bind_param(
+                "iississd",
+                $this->room_id,
+                $user_id,
+                $this->guest_name,
+                $this->guest_email,
+                $this->guests,
+                $this->check_in,
+                $this->check_out,
+                $this->total_price
+            );
+            
+            $result = $stmt->execute();
+            $stmt->close();
+            
+            
+            $conn->commit();
+            $conn->close();
+            
+            return $result;
+            
+        } catch (Exception $e) {
+            // If anything goes wrong, rollback the transaction
+            $conn->rollback();
+            $conn->close();
             return false;
         }
-
-        $conn = $this->connect();
-
-        $stmt = $conn->prepare("
-            INSERT INTO bookings
-            (room_id, user_id, guest_name, guest_email, guests, check_in, check_out, total_price)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ");
-
-        $user_id = $this->user_id ? $this->user_id : null;
-
-        $stmt->bind_param(
-            "iississd",
-            $this->room_id,
-            $user_id,
-            $this->guest_name,
-            $this->guest_email,
-            $this->guests,
-            $this->check_in,
-            $this->check_out,
-            $this->total_price
-        );
-
-        $result = $stmt->execute();
-
-        $stmt->close();
-        $conn->close();
-        return $result;
     }
 
     public function delete() {
