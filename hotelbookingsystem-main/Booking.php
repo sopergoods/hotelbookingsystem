@@ -37,14 +37,14 @@ class Booking extends Dbh {
             $count = $result['total'];
             $stmt->close();
             
-            
+            // If room is already booked, rollback and return false
             if ($count > 0) {
                 $conn->rollback();
                 $conn->close();
                 return false;
             }
             
-           
+            // Room is available, insert the booking
             $stmt = $conn->prepare("
                 INSERT INTO bookings
                 (room_id, user_id, guest_name, guest_email, guests, check_in, check_out, total_price)
@@ -68,7 +68,7 @@ class Booking extends Dbh {
             $result = $stmt->execute();
             $stmt->close();
             
-            
+            // Commit the transaction - makes the booking permanent
             $conn->commit();
             $conn->close();
             
