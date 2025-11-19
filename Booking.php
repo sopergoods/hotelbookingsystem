@@ -17,12 +17,9 @@ class Booking extends Dbh {
     public function add() {
         $conn = $this->connect();
         
-        // Start transaction to prevent race conditions
         $conn->begin_transaction();
         
         try {
-            // Check availability WITH row lock (FOR UPDATE)
-            // This prevents other users from checking the same room simultaneously
             $stmt = $conn->prepare("
                 SELECT COUNT(*) AS total
                 FROM bookings
@@ -37,14 +34,12 @@ class Booking extends Dbh {
             $count = $result['total'];
             $stmt->close();
             
-            // If room is already booked, rollback and return false
             if ($count > 0) {
                 $conn->rollback();
                 $conn->close();
                 return false;
             }
             
-            // Room is available, insert the booking
             $stmt = $conn->prepare("
                 INSERT INTO bookings
                 (room_id, user_id, guest_name, guest_email, guests, check_in, check_out, total_price)
@@ -68,40 +63,40 @@ class Booking extends Dbh {
             $result = $stmt->execute();
             $stmt->close();
             
-            // Commit the transaction - makes the booking permanent
             $conn->commit();
             $conn->close();
             
             return $result;
             
         } catch (Exception $e) {
-            // If anything goes wrong, rollback the transaction
             $conn->rollback();
             $conn->close();
             return false;
         }
     }
-public function isRoomAvailable() {
-    $conn = $this->connect();
-    
-    $stmt = $conn->prepare("
-        SELECT COUNT(*) as booking_count 
-        FROM bookings 
-        WHERE room_id = ? 
-        AND NOT (check_out <= ? OR check_in >= ?)
-    ");
-    
-    $stmt->bind_param("iss", $this->room_id, $this->check_in, $this->check_out);
-    $stmt->execute();
-    
-    $result = $stmt->get_result()->fetch_assoc();
-    $isAvailable = $result['booking_count'] == 0;
-    
-    $stmt->close();
-    $conn->close();
-    
-    return $isAvailable;
-}
+
+    public function isRoomAvailable() {
+        $conn = $this->connect();
+        
+        $stmt = $conn->prepare("
+            SELECT COUNT(*) as booking_count 
+            FROM bookings 
+            WHERE room_id = ? 
+            AND NOT (check_out <= ? OR check_in >= ?)
+        ");
+        
+        $stmt->bind_param("iss", $this->room_id, $this->check_in, $this->check_out);
+        $stmt->execute();
+        
+        $result = $stmt->get_result()->fetch_assoc();
+        $isAvailable = $result['booking_count'] == 0;
+        
+        $stmt->close();
+        $conn->close();
+        
+        return $isAvailable;
+    }
+
     public function delete() {
         $conn = $this->connect();
         $stmt = $conn->prepare("DELETE FROM bookings WHERE id = ?");
@@ -137,7 +132,7 @@ public function isRoomAvailable() {
             SELECT b.*, r.name AS room_name
             FROM bookings b
             JOIN rooms r ON b.room_id = r.id
-            ORDER BY b.id ASC
+            ORDER BY b.id DESC
         ");
 
         $bookings = [];
