@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["php82", "php82Extensions.mysqli", "php82Extensions.pdo_mysql", "php82Extensions.mbstring", "php82Extensions.gd"]
+
+[phases.install]
+# Skip composer install since we don't have external dependencies
+
+[phases.build]
+# No build needed for pure PHP project
+
+[start]
+cmd = "php -S 0.0.0.0:$PORT -t ."
