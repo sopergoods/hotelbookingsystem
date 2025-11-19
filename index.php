@@ -58,7 +58,7 @@ $rooms = $roomObj->all();
                     <p><?= htmlspecialchars(substr($room['description'],0,80)) ?>...</p>
 
                     <div class="mt-auto d-flex justify-content-between align-items-center">
-                        <strong class="text-primary">$<?= number_format($room['price_per_night'],2) ?>/night</strong>
+                        <strong class="text-primary">₱<?= number_format($room['price_per_night'],2) ?>/night</strong>
                         <a href="book.php?id=<?= $room['id'] ?>" class="btn btn-primary btn-sm">Book Now</a>
                     </div>
                 </div>

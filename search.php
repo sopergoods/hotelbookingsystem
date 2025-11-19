@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <p class="text-muted"><?= htmlspecialchars($room['type']) ?></p>
                             <p><?= htmlspecialchars(substr($room['description'],0,80)) ?>...</p>
                             <div class="d-flex justify-content-between">
-                                <strong>$<?= number_format($room['price_per_night'],2) ?>/night</strong>
+                                <strong>₱<?= number_format($room['price_per_night'],2) ?>/night</strong>
                                 <a href="book.php?id=<?= $room['id'] ?>&ci=<?= $check_in ?>&co=<?= $check_out ?>&g=<?= $guests ?>"
                                    class="btn btn-primary btn-sm">Book Now</a>
                             </div>
