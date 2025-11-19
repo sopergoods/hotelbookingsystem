@@ -1,6 +1,6 @@
 <?php
 
-include_once 'dbh.php';
+include_once 'Dbh.php';
 
 class Room extends Dbh {
 
